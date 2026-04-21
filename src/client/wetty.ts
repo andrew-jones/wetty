@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import '../assets/scss/styles.scss';
 
-import { disconnect } from './wetty/disconnect';
+import { disconnect, showReconnecting, hideOverlay } from './wetty/disconnect';
 import { overlay } from './wetty/disconnect/elements';
 import { verifyPrompt } from './wetty/disconnect/verify';
 import { FileDownloader } from './wetty/download';
@@ -66,8 +66,22 @@ socket.on('connect', () => {
       term.resizeTerm();
     })
     .on('logout', disconnect)
-    .on('disconnect', disconnect)
+    .on('disconnect', (reason: string) => {
+      if (socket.active) {
+        showReconnecting();
+      } else {
+        disconnect(reason);
+      }
+    })
     .on('error', (err: string | null) => {
       if (err) disconnect(err);
     });
+});
+
+socket.io.on('reconnect', () => {
+  hideOverlay();
+});
+
+socket.io.on('reconnect_failed', () => {
+  disconnect('Connection lost. Please reconnect.');
 });
