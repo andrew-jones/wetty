@@ -38,6 +38,10 @@ export const listen = (
   return new Server(server, {
     path: `${path}/socket.io`,
     pingInterval: 25000,
-    pingTimeout: 60000,
+    pingTimeout: 300000,
+    connectionStateRecovery: {
+      maxDisconnectionDuration: 5 * 60 * 1000,
+      skipMiddlewares: true,
+    },
   });
 }
