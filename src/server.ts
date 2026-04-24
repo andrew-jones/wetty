@@ -68,11 +68,13 @@ export async function decorateServerWithSsh(
    * @fires WeTTy#connnection
    */
   io.on('connection', async (socket: SocketIO.Socket) => {
-    /**
-     * @event wetty#connection
-     * @name connection
-     */
-    logger.info('Connection accepted.');
+    logger.info('Connection accepted.', { recovered: socket.recovered });
+
+    if (socket.recovered) {
+      logger.info('Session recovered, skipping new PTY spawn');
+      return;
+    }
+
     wettyConnections.inc();
 
     try {

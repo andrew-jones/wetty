@@ -19,8 +19,16 @@ export async function spawn(
   const address = args[0] === 'ssh' ? args[1] : 'localhost';
   logger.info('Process Started on behalf of user', { pid, address });
   socket.emit('login');
+
+  const DISCONNECT_GRACE_MS = 30000;
+  let disconnectTimer: ReturnType<typeof setTimeout> | null = null;
+
   term.onExit(({exitCode}) => {
     logger.info('Process exited', { exitCode, pid });
+    if (disconnectTimer) {
+      clearTimeout(disconnectTimer);
+      disconnectTimer = null;
+    }
     socket.emit('logout');
     socket
       .removeAllListeners('disconnect')
@@ -35,16 +43,25 @@ export async function spawn(
       term.pause();
     }
   });
+
   socket
     .on('resize', ({ cols, rows }) => {
       term.resize(cols, rows);
     })
     .on('input', input => {
       if (!isUndefined(term)) term.write(input);
+      if (disconnectTimer) {
+        clearTimeout(disconnectTimer);
+        disconnectTimer = null;
+        logger.info('Client reconnected, cancelled PTY teardown', { pid });
+      }
     })
     .on('disconnect', () => {
-      term.kill();
-      logger.info('Process exited', { code: 0, pid });
+      logger.info('Socket disconnected, waiting for reconnect before killing PTY', { pid });
+      disconnectTimer = setTimeout(() => {
+        term.kill();
+        logger.info('Grace period expired, PTY killed', { pid });
+      }, DISCONNECT_GRACE_MS);
     })
     .on('commit', size => {
       if (fcServer.commit(size)) {
