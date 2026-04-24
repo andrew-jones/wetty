@@ -7,6 +7,9 @@ export const onInput = (term: Term, updated: Options) => {
     const updatedConf = JSON.stringify(updated, null, 2);
     if (localStorage.options === updatedConf) return;
     term.options = updated.xterm;
+    if (updated.xterm.theme?.background) {
+      document.body.style.backgroundColor = updated.xterm.theme.background;
+    }
     if (
       !updated.wettyFitTerminal &&
       updated.xterm.cols != null &&
