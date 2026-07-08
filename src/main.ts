@@ -102,6 +102,11 @@ const yargsInstance = yargs(hideBin(process.argv))
     description: 'command to run in shell',
     type: 'string',
   })
+  .option('theme', {
+    description:
+      'Default terminal color theme (override per-session with ?theme= query param)',
+    type: 'string',
+  })
   .option('allow-iframe', {
     description:
       'Allow WeTTY to be embedded in an iframe, defaults to allowing same origin',

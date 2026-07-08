@@ -2,6 +2,7 @@ import { editor } from '../disconnect/elements';
 import { copySelected, copyShortcut } from './configuration/clipboard';
 import { onInput } from './configuration/editor';
 import { loadOptions } from './load';
+import { getTheme, resolveThemeName } from './themes';
 import type { Options } from './options';
 import type { Term } from '../term';
 
@@ -11,6 +12,14 @@ export function configureTerm(term: Term): void {
     term.options = options.xterm;
   } catch {
     /* Do nothing */
+  }
+
+  const themeName = resolveThemeName();
+  if (themeName) {
+    const theme = getTheme(themeName);
+    if (theme) {
+      term.options.theme = theme;
+    }
   }
 
   const toggle = document.querySelector('#options .toggler');

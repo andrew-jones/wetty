@@ -3,7 +3,7 @@ import { faCogs, faKeyboard } from '@fortawesome/free-solid-svg-icons';
 
 import '../assets/scss/styles.scss';
 
-import { disconnect } from './wetty/disconnect';
+import { disconnect, showReconnecting, hideOverlay } from './wetty/disconnect';
 import { overlay } from './wetty/disconnect/elements';
 import { verifyPrompt } from './wetty/disconnect/verify';
 import { FileDownloader } from './wetty/download';
@@ -11,6 +11,7 @@ import { FlowControlClient } from './wetty/flowcontrol';
 import { mobileKeyboard } from './wetty/mobile';
 import { socket } from './wetty/socket';
 import { terminal, Term } from './wetty/term';
+import { getTheme, resolveThemeName } from './wetty/term/themes';
 
 if ('serviceWorker' in navigator) {
   const scripts = Array.from(document.getElementsByTagName('script'));
@@ -27,6 +28,17 @@ if ('serviceWorker' in navigator) {
 library.add(faCogs);
 library.add(faKeyboard);
 dom.watch();
+
+// Apply theme background early to reduce flash of wrong color
+(function applyEarlyBackground() {
+  const themeName = resolveThemeName();
+  if (themeName) {
+    const theme = getTheme(themeName);
+    if (theme) {
+      document.body.style.backgroundColor = theme.background;
+    }
+  }
+})();
 
 function onResize(term: Term): () => void {
   return function resize() {
@@ -76,8 +88,22 @@ socket.on('connect', () => {
       term.resizeTerm();
     })
     .on('logout', disconnect)
-    .on('disconnect', disconnect)
+    .on('disconnect', (reason: string) => {
+      if (socket.active) {
+        showReconnecting();
+      } else {
+        disconnect(reason);
+      }
+    })
     .on('error', (err: string | null) => {
       if (err) disconnect(err);
     });
+});
+
+socket.io.on('reconnect', () => {
+  hideOverlay();
+});
+
+socket.io.on('reconnect_failed', () => {
+  disconnect('Connection lost. Please reconnect.');
 });
