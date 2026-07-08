@@ -16,7 +16,7 @@ RUN cd node_modules/node-pty && npm run install && cd ../..
 
 # ---------- Build stage ----------
 FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/root/.pnpm-store HUSKY=0 pnpm install --frozen-lockfile
 RUN pnpm run build
 
 # ---------- Final runtime image ----------

@@ -91,7 +91,12 @@ async function buildServer(watching) {
   const tscArgs = ['tsc', '-p', 'tsconfig.node.json'];
   if (watching) tscArgs.push('--watch', '--preserveWatchOutput');
   const [_tsc, tscDone] = cmd('pnpm', tscArgs);
-  if (!watching) await tscDone;
+  if (!watching) {
+    const { ret } = await tscDone;
+    if (ret !== 0) {
+      throw new Error(`Server build failed: tsc exited with code ${ret}`);
+    }
+  }
 }
 
 const watching = process.argv.includes('--watch');

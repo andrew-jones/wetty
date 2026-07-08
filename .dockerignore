@@ -4,6 +4,7 @@ node_modules
 *.md
 *.yml
 *.png
+*.tsbuildinfo
 **/*.conf
 **/*.service
 dist

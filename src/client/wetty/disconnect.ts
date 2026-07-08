@@ -10,3 +10,15 @@ export function disconnect(reason?: string): void {
   const msg = document.getElementById('msg');
   if (msg !== null) msg.textContent = reason ?? 'Session ended';
 }
+
+export function showReconnecting(): void {
+  if (overlay === null) return;
+  overlay.style.display = 'block';
+  const msg = document.getElementById('msg');
+  if (msg !== null) msg.innerHTML = 'Reconnecting...';
+}
+
+export function hideOverlay(): void {
+  if (overlay === null) return;
+  overlay.style.display = 'none';
+}
