@@ -27,6 +27,15 @@ export const policies =
           // hostname browsers treat as already trustworthy and skip the
           // upgrade for).
           'upgrade-insecure-requests': null,
+          // Helmet's defaults also set `frame-ancestors 'self'`, which takes
+          // priority over X-Frame-Options and is checked against the whole
+          // ancestor chain, not just the immediate parent. Left in place, it
+          // blocks WeTTY from loading whenever it's nested inside any
+          // cross-origin ancestor -- e.g. a same-origin parent (Showroom)
+          // that is itself embedded in a third-party portal on another
+          // domain. Drop it when iframe embedding is explicitly allowed,
+          // mirroring xFrameOptions below.
+          ...(allowIframe ? { 'frame-ancestors': null } : {}),
         },
       },
       xFrameOptions: allowIframe ? false : { action: 'sameorigin' },
